@@ -1,58 +1,59 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import re
-import os
-import json
-import sys
 import math
-import hashlib
+
 
 def format_date(date_obj):
     if date_obj:
         return str(date_obj)
     return None
 
+
 def calculate_percentage(part, total):
     if total == 0:
         return 0
     return round((part / total) * 100, 2)
 
-def validate_email(email):
 
+def validate_email(email):
     if re.match(r'^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$', email):
         return True
     return False
 
-def sanitize_string(s):
 
+def sanitize_string(s):
     if s:
         return s.strip()
     return s
 
-def generate_id():
 
+def generate_id():
     import uuid
     return str(uuid.uuid4())
 
-def log_action(action, details=None):
 
-    timestamp = datetime.utcnow()
+def log_action(action, details=None):
+    timestamp = datetime.now(timezone.utc)
     print(f"[{timestamp}] ACTION: {action}")
     if details:
         print(f"  DETAILS: {details}")
 
+
 def parse_date(date_string):
     try:
         return datetime.strptime(date_string, '%Y-%m-%d')
-    except:
+    except (ValueError, TypeError):
         try:
             return datetime.strptime(date_string, '%d/%m/%Y')
-        except:
+        except (ValueError, TypeError):
             return None
+
 
 def is_valid_color(color):
     if color and len(color) == 7 and color[0] == '#':
         return True
     return False
+
 
 def process_task_data(data, existing_task=None):
     result = {}
@@ -64,9 +65,9 @@ def process_task_data(data, existing_task=None):
             if len(title) >= 3 and len(title) <= 200:
                 result['title'] = title
             else:
-                return None, 'Título deve ter entre 3 e 200 caracteres'
+                return None, 'Titulo deve ter entre 3 e 200 caracteres'
         else:
-            return None, 'Título não pode ser vazio'
+            return None, 'Titulo nao pode ser vazio'
 
     if 'description' in data:
         result['description'] = data['description']
@@ -76,7 +77,7 @@ def process_task_data(data, existing_task=None):
         if data['status'] in valid_statuses:
             result['status'] = data['status']
         else:
-            return None, 'Status inválido'
+            return None, 'Status invalido'
 
     if 'priority' in data:
         try:
@@ -85,8 +86,8 @@ def process_task_data(data, existing_task=None):
                 result['priority'] = p
             else:
                 return None, 'Prioridade deve ser entre 1 e 5'
-        except:
-            return None, 'Prioridade inválida'
+        except (ValueError, TypeError):
+            return None, 'Prioridade invalida'
 
     if 'due_date' in data:
         if data['due_date']:
@@ -94,18 +95,19 @@ def process_task_data(data, existing_task=None):
             if parsed:
                 result['due_date'] = parsed
             else:
-                return None, 'Data inválida'
+                return None, 'Data invalida'
         else:
             result['due_date'] = None
 
     if 'tags' in data:
         tags = data['tags']
-        if type(tags) == list:
+        if isinstance(tags, list):
             result['tags'] = ','.join(tags)
         else:
             result['tags'] = tags
 
     return result, None
+
 
 VALID_STATUSES = ['pending', 'in_progress', 'done', 'cancelled']
 VALID_ROLES = ['user', 'admin', 'manager']
